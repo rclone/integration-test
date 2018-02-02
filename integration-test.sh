@@ -1,4 +1,3 @@
-ls
 #!/bin/bash
 
 set -e
@@ -42,7 +41,7 @@ touch summary
 echo >> summary "--------------------------------------------------------------" 
 echo >> summary "go test results - full results at ${www}/test-${TAG}.txt"
 echo >> summary "--------------------------------------------------------------" 
-grep >> summary FAIL test.log || echo >> summary "No test failures"
+grep >> summary 'FAIL\|WARN' test.log || echo >> summary "No test failures"
 echo >> summary
 echo >> summary "--------------------------------------------------------------" 
 echo >> summary "fs/test_all results - full results at ${www}/test_all-${TAG}.txt"
