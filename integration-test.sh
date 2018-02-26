@@ -18,6 +18,10 @@ else
     git clone https://github.com/ncw/rclone.git .
 fi
 
+# make sure we build the optional extras
+
+export GOTAGS=cmount
+
 # run the tests
 
 make test || true
