@@ -8,7 +8,7 @@ Install enough tools to build rclone
 
     apt-get build-essentials
 
-Install the latest version of go from source
+Install the latest version of go from source.
 
 Make sure go path is added to .profile
 
@@ -16,7 +16,11 @@ Make sure go path is added to .profile
 
 set PATH so it includes go binary path in .profile
 
-    PATH="/usr/local/go/bin:$HOME/go/bin:$PATH"
+    export PATH="/usr/local/go/bin:$HOME/go/bin:$PATH"
+
+Install hugo from .deb, make sure /usr/local/bin is on the path
+
+    export PATH="/usr/local/bin:$PATH"
 
 create an rclone user and have something like this on the crontab
 
@@ -24,7 +28,9 @@ create an rclone user and have something like this on the crontab
 SHELL=/bin/bash
 MAILTO=your@email-address.com
 
-0 6 * * * (cd ~/integration-test; date -Is; source ~/.profile; ./integration-test.sh) >> integration-test.log 2>&1
+0 5 * * * (cd ~/integration-test; date -Is; source ~/.profile; ./integration-test.sh) >> integration-test.log 2>&1
+
+0 9 * * * (cd ~/integration-test; date -Is; source ~/.profile; ./upload-tip.sh) >> upload-tip.log 2>&1
 ```
 
 Make sure you have an rclone config with credentials for all the cloud providers.  `rclone listremotes` should look something like
