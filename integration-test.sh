@@ -11,12 +11,19 @@ export GOPATH=~/go
 mkdir -p ${GOPATH}/src/github.com/ncw/rclone
 
 cd ${GOPATH}/src/github.com/ncw/rclone
+# tidy up from previous runs
+rm -f fs/operations/operations.test fs/sync/sync.test fs/test_all.log summary test.log
 if [ -e ".git" ]; then
+    git stash --include-untracked # stash any local changes just in case
     git checkout master
     git pull
 else
     git clone https://github.com/ncw/rclone.git .
 fi
+
+# make sure restic is up to date for the cmd/serve/restic integration tests
+
+go get -u github.com/restic/restic/...
 
 # make sure we build the optional extras
 
