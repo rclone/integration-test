@@ -21,9 +21,26 @@ else
     git clone https://github.com/ncw/rclone.git .
 fi
 
+# build rclone
+
+make
+
 # make sure restic is up to date for the cmd/serve/restic integration tests
 
 go get -u github.com/restic/restic/...
+
+# update and start minio
+
+minio_dir=/tmp/minio
+
+killall -q minio
+rm -rf ${minio_dir}
+mkdir -p ${minio_dir}
+export MINIO_ACCESS_KEY=minio
+export MINIO_SECRET_KEY=AxedBodedGinger7
+go get -u github.com/minio/minio
+minio server --address 127.0.0.1:9000 ${minio_dir} >/tmp/minio.log 2>&1 &
+minio_pid=$!
 
 # make sure we build the optional extras
 
@@ -31,42 +48,9 @@ export GOTAGS=cmount
 
 # run the tests
 
-make test || true
+go install github.com/ncw/rclone/fstest/test_all
 
-# set TAG
-make vars | grep TAG >sourceme
-source sourceme
-rm sourceme
+test_all -upload "memstore:pub-rclone-org//integration-tests" -email "nick@craig-wood.com" -output "/home/rclone/integration-test/rclone-integration-tests"
 
-# make paths
-outstore=memstore:pub-rclone-org
-outroot=integration-tests
-outpath=${outroot}/`date +'%Y-%m/%Y-%m-%d-%H%M%S'`
-www=https://pub.rclone.org/${outpath}
-out=${outstore}/${outpath}
-outtop=${outstore}/${outroot}
-
-# make summary
-rm -f summary
-touch summary
-echo >> summary "--------------------------------------------------------------" 
-echo >> summary "go test results - full results at ${www}/test-${TAG}.txt"
-echo >> summary "--------------------------------------------------------------" 
-grep >> summary 'FAIL\|WARN' test.log || echo >> summary "No test failures"
-echo >> summary
-echo >> summary "--------------------------------------------------------------" 
-echo >> summary "fs/test_all results - full results at ${www}/test_all-${TAG}.txt"
-echo >> summary "--------------------------------------------------------------" 
-grep >> summary -A1000 SUMMARY fs/test_all.log || echo >> summary "No SUMMARY found"
-
-mail nick@craig-wood.com -s "rclone integration tests" <summary
-
-# copy the results
-rclone copyto test.log ${out}/test-${TAG}.txt
-rclone copyto fs/test_all.log ${out}/test_all-${TAG}.txt
-rclone copyto summary ${out}/summary-${TAG}.txt
-
-# server side copy these to current
-rclone copyto ${out}/test-${TAG}.txt ${outtop}/current-test.txt
-rclone copyto ${out}/test_all-${TAG}.txt ${outtop}/current-test_all.txt
-rclone copyto ${out}/summary-${TAG}.txt ${outtop}/current-summary.txt
+# stop minio
+kill $minio_pid
