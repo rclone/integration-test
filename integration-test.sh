@@ -33,7 +33,7 @@ go get -u github.com/restic/restic/...
 
 minio_dir=/tmp/minio
 
-killall -q minio
+killall -q minio || true
 rm -rf ${minio_dir}
 mkdir -p ${minio_dir}
 export MINIO_ACCESS_KEY=minio
