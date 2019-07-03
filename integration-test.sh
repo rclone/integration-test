@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -ve
 
 # run the rclone integration tests against all the remotes
 
@@ -38,7 +38,7 @@ rm -rf ${minio_dir}
 mkdir -p ${minio_dir}
 export MINIO_ACCESS_KEY=minio
 export MINIO_SECRET_KEY=AxedBodedGinger7
-go get -u github.com/minio/minio
+for i in 1 2 3 4 5; do GO111MODULE=on go get github.com/minio/minio@latest command && break || sleep 2; done
 minio server --address 127.0.0.1:9000 ${minio_dir} >/tmp/minio.log 2>&1 &
 minio_pid=$!
 
