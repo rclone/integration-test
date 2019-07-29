@@ -5,7 +5,7 @@ set -e
 # upload the tip website
 
 export GOPATH=~/go
-cd ${GOPATH}/src/github.com/ncw/rclone
+cd ${GOPATH}/src/github.com/rclone/rclone
 make commanddocs
 make website
 rclone sync docs/public memstore:tip-rclone-org

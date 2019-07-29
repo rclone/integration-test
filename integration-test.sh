@@ -8,9 +8,9 @@ export GOPATH=~/go
 
 # checkout
 
-mkdir -p ${GOPATH}/src/github.com/ncw/rclone
+mkdir -p ${GOPATH}/src/github.com/rclone/rclone
 
-cd ${GOPATH}/src/github.com/ncw/rclone
+cd ${GOPATH}/src/github.com/rclone/rclone
 # tidy up from previous runs
 rm -f fs/operations/operations.test fs/sync/sync.test fs/test_all.log summary test.log
 if [ -e ".git" ]; then
@@ -18,7 +18,7 @@ if [ -e ".git" ]; then
     git checkout master
     git pull
 else
-    git clone https://github.com/ncw/rclone.git .
+    git clone https://github.com/rclone/rclone.git .
 fi
 
 # build rclone
@@ -48,7 +48,7 @@ export GOTAGS=cmount
 
 # run the tests
 
-go install github.com/ncw/rclone/fstest/test_all
+go install github.com/rclone/rclone/fstest/test_all
 
 test_all -verbose -upload "memstore:pub-rclone-org//integration-tests" -email "nick@craig-wood.com" -output "/home/rclone/integration-test/rclone-integration-tests"
 
