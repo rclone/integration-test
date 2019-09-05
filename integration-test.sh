@@ -5,6 +5,7 @@ set -ve
 # run the rclone integration tests against all the remotes
 
 export GOPATH=~/go
+export GO111MODULE=off
 
 # checkout
 
