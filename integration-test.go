@@ -136,8 +136,8 @@ func installGitHubRepo(repo string) {
 	// checkout the code
 	if exists(".git") {
 		run("git", "stash", "--include-untracked") // stash any local changes just in case
-		run("git", "fetch", "origin")
 		run("git", "checkout", "master")
+		run("git", "pull")
 	} else {
 		run("git", "clone", "https://github.com/"+repo+".git", ".")
 	}
