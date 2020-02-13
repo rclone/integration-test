@@ -9,7 +9,6 @@ import (
 	"os/exec"
 	"path"
 	"strings"
-	"time"
 )
 
 var (
@@ -17,7 +16,6 @@ var (
 	debug       = flag.Bool("d", false, "Print commands instead of running them.")
 	verbose     = flag.Bool("v", false, "Print commands as they are being executed and command output.")
 	gopath      = flag.String("gopath", os.ExpandEnv("${HOME}/go"), "GOPATH to use.")
-	minioPath   = flag.String("minio", "/tmp/minio", "Place to install and run minio")
 	prepareOnly = flag.Bool("prepare-only", false, "Do everything except run tests")
 	pr          = flag.String("pr", "", "PR number to test")
 	branch      = flag.String("branch", "", "branch to test (defaults to master)")
@@ -174,60 +172,6 @@ func installRestic() {
 	run("go", "get", "-u", "github.com/restic/restic/...")
 }
 
-// install and run minio returning a function to stop it
-func installMinio(minioPath string) func() {
-	chdir("/tmp")
-
-	// update and start minio
-	xrun("killall", "-q", "minio")
-	run("rm", "-rf", minioPath)
-	mkdirall(minioPath)
-
-	// Fetch the latest minio
-	var err error
-	for i := 1; i <= 5; i++ {
-		_, err = runEnv(
-			[]string{"go", "get", "github.com/minio/minio@latest"},
-			[]string{"GO111MODULE=on", "GOPROXY=https://proxy.golang.org"},
-		)
-		if err == nil {
-			break
-		}
-		time.Sleep(2 * time.Second)
-	}
-	if err != nil {
-		log.Fatalf("failed to download minio: %v", err)
-	}
-
-	// Start minio
-	minioCmd := cmdEnv(
-		[]string{path.Join(gobin, "minio"), "server", "--address", "127.0.0.1:9000", minioPath},
-		[]string{"MINIO_ACCESS_KEY=minio", "MINIO_SECRET_KEY=AxedBodedGinger7"},
-	)
-	minioLogPath := minioPath + ".log"
-	minioLog, err := os.Create(minioLogPath)
-	if err != nil {
-		log.Fatalf("Failed to open minio log: %v", err)
-	}
-	minioCmd.Stdout = minioLog
-	minioCmd.Stderr = minioLog
-	err = minioCmd.Start()
-	if err != nil {
-		log.Fatalf("Failed to start minio: %v", err)
-	}
-	log.Printf("Started minio logging to %q", minioLogPath)
-
-	// stop minio on exit
-	return func() {
-		err = minioCmd.Process.Kill()
-		if err != nil {
-			log.Fatalf("Failed to kill minio: %v", err)
-		}
-		_ = minioCmd.Wait()
-		log.Printf("minio killed")
-	}
-}
-
 // run the rclone integration tests against all the remotes
 func runTests(rclonePath string) {
 	chdir(rclonePath)
@@ -267,7 +211,6 @@ func main() {
 
 	installGitHubRepo("restic/restic") // install restic source so we can use its tests
 	installRclone()
-	defer installMinio(*minioPath)()
 
 	rclonePath := path.Join(*gopath, "src/github.com/rclone/rclone")
 	runTests(rclonePath)
