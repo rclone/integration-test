@@ -206,7 +206,6 @@ func main() {
 
 	gobin = path.Join(*gopath, "bin")
 	setenv("GOPATH", *gopath)
-	setenv("GO111MODULE", "off")
 	setenv("GOTAGS", "cmount") // make sure we build the optional extras
 
 	installGitHubRepo("restic/restic") // install restic source so we can use its tests
