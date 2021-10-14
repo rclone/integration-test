@@ -8,21 +8,24 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"sort"
 	"strings"
 )
 
 var (
 	// Flags
-	debug       = flag.Bool("d", false, "Print commands instead of running them.")
-	verbose     = flag.Bool("v", false, "Print commands as they are being executed and command output.")
-	gopath      = flag.String("gopath", os.ExpandEnv("${HOME}/go"), "GOPATH to use.")
-	prepareOnly = flag.Bool("prepare-only", false, "Do everything except run tests")
-	pr          = flag.String("pr", "", "PR number to test")
-	branch      = flag.String("branch", "", "branch to test (defaults to master)")
-	backends    = flag.String("backends", "", "to pass to test_all -backends")
-	remotes     = flag.String("remotes", "", "to pass to test_all -remotes")
-	tests       = flag.String("tests", "", "to pass to test_all -tests")
-	runRegexp   = flag.String("run", "", "to pass to test_all -run")
+	debug        = flag.Bool("d", false, "Print commands instead of running them.")
+	verbose      = flag.Bool("v", false, "Print commands as they are being executed and command output.")
+	gopath       = flag.String("gopath", os.ExpandEnv("${HOME}/go"), "GOPATH to use.")
+	prepareOnly  = flag.Bool("prepare-only", false, "Do everything except run tests")
+	pr           = flag.String("pr", "", "PR number to test")
+	branch       = flag.String("branch", "", "branch to test (defaults to master)")
+	backends     = flag.String("backends", "", "to pass to test_all -backends")
+	remotes      = flag.String("remotes", "", "to pass to test_all -remotes")
+	tests        = flag.String("tests", "", "to pass to test_all -tests")
+	runRegexp    = flag.String("run", "", "to pass to test_all -run")
+	outputDir    = flag.String("output", "/home/rclone/integration-test/rclone-integration-tests", "write test output here")
+	outputDirMax = flag.Int("output-max", 60, "maximum number of directories in outputDir")
 	// Globals
 	gobin         string // place for go binaries - filled in by main()
 	rcloneVersion string // version of rclone
@@ -183,7 +186,7 @@ func runTests(rclonePath string) {
 			"-verbose",
 			"-upload", "memstore:pub-rclone-org/integration-tests",
 			"-email", "nick@craig-wood.com",
-			"-output", "/home/rclone/integration-test/rclone-integration-tests",
+			"-output", *outputDir,
 		}
 		if *backends != "" {
 			args = append(args, "-backends", *backends)
@@ -201,12 +204,40 @@ func runTests(rclonePath string) {
 	}
 }
 
+// make sure there aren't too many items in the output dir
+func tidyOutputDir() {
+	fis, err := os.ReadDir(*outputDir)
+	if err != nil {
+		log.Fatalf("Failed to read output directory %q: %v", outputDir, err)
+	}
+	var names []string
+	for _, fi := range fis {
+		if fi.IsDir() {
+			names = append(names, fi.Name())
+		}
+	}
+	sort.Strings(names)
+	if trim := len(names) - *outputDirMax; trim > 0 {
+		log.Printf("Need to trim %d directories", trim)
+		for _, dir := range names[:trim] {
+			dir = path.Join(*outputDir, dir)
+			log.Printf("Trimming %s", dir)
+			err := os.RemoveAll(dir)
+			if err != nil {
+				log.Printf("Failed to remove %q: %v", dir, err)
+			}
+		}
+	}
+}
+
 func main() {
 	flag.Parse()
 	args := flag.Args()
 	if len(args) != 0 {
 		log.Fatalf("Syntax: %s [opts]", os.Args[0])
 	}
+
+	tidyOutputDir()
 
 	gobin = path.Join(*gopath, "bin")
 	setenv("GOPATH", *gopath)
