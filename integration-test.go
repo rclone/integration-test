@@ -22,6 +22,7 @@ var (
 	backends    = flag.String("backends", "", "to pass to test_all -backends")
 	remotes     = flag.String("remotes", "", "to pass to test_all -remotes")
 	tests       = flag.String("tests", "", "to pass to test_all -tests")
+	runRegexp   = flag.String("run", "", "to pass to test_all -run")
 	// Globals
 	gobin         string // place for go binaries - filled in by main()
 	rcloneVersion string // version of rclone
@@ -192,6 +193,9 @@ func runTests(rclonePath string) {
 		}
 		if *tests != "" {
 			args = append(args, "-tests", *tests)
+		}
+		if *runRegexp != "" {
+			args = append(args, "-run", *runRegexp)
 		}
 		xrun(args...)
 	}
