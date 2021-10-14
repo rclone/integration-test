@@ -1,6 +1,7 @@
 package main
 
 import (
+       "fmt"
 	"bytes"
 	"flag"
 	"io"
@@ -26,6 +27,7 @@ var (
 	runRegexp    = flag.String("run", "", "to pass to test_all -run")
 	outputDir    = flag.String("output", "/home/rclone/integration-test/rclone-integration-tests", "write test output here")
 	outputDirMax = flag.Int("output-max", 60, "maximum number of directories in outputDir")
+	maxTries     = flag.Int("maxtries", -1, "if set, overrides the -maxtries for test_all")
 	// Globals
 	gobin         string // place for go binaries - filled in by main()
 	rcloneVersion string // version of rclone
@@ -199,6 +201,9 @@ func runTests(rclonePath string) {
 		}
 		if *runRegexp != "" {
 			args = append(args, "-run", *runRegexp)
+		}
+		if *maxTries > 0 {
+			args = append(args, "-maxtries", fmt.Sprint(*maxTries))
 		}
 		xrun(args...)
 	}
