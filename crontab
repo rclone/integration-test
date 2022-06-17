@@ -24,7 +24,7 @@
 SHELL=/bin/bash
 MAILTO=nick@craig-wood.com
 
-0 3 * * * (cd ~/go/src/github.com/rclone/rclone; date -Is; source ~/.profile; test_all -clean ) 2>&1 >> clean.log || echo "rclone clean failed"
+0 3 * * * (cd ~/go/src/github.com/rclone/rclone; date -Is; source ~/.profile; test_all -clean ) >> clean.log 2>&1 || echo "rclone clean failed"
 
 0 5 * * * (cd ~/integration-test; date -Is; source ~/.profile; go run integration-test.go) >> integration-test.log 2>&1 || echo "rclone integration tests failed"
 
