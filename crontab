@@ -30,6 +30,11 @@ MAILTO=nick@craig-wood.com
 
 0 9 * * * (cd ~/integration-test; date -Is; source ~/.profile; ./upload-tip.sh) >> upload-tip.log 2>&1 || echo "rclone tip upload failed"
 
+10 10 * * * (cd ~/integration-test; date -Is; source ~/.profile; ./tidy-integration-test.sh) >> tidy-integration-test.log 2>&1 || echo "rclone tidy integration test failed"
+
 0 2 * * Sun (cd ~/integration-test; date -Is; source ~/.profile; ./update-docker-images.sh) >> update-docker-images.log 2>&1 || echo "rclone update docker images failed"
 
 #19 * * * * ./test-beta-download.sh >>test-beta-download.log 2>&1
+
+# Backup memstore to b2
+3 2 * * * /home/rclone/backup-memstore-rclone.sh >>/tmp/backup-memstore-rclone.log 2>&1
