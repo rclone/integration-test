@@ -8,6 +8,6 @@ export GOPATH=~/go
 cd ${GOPATH}/src/github.com/rclone/rclone
 make commanddocs
 make website
-rclone sync docs/public memstore:tip-rclone-org
+rclone sync docs/public tip.rclone.org:
 git checkout -- docs/content
 echo "Uploaded new website to https://tip.rclone.org/"

@@ -186,7 +186,7 @@ func runTests(rclonePath string) {
 		args := []string{
 			path.Join(gobin, "test_all"),
 			"-verbose",
-			"-upload", "memstore:pub-rclone-org/integration-tests",
+			"-upload", "pub.rclone.org:integration-tests",
 			"-email", "nick@craig-wood.com",
 			"-output", *outputDir,
 		}

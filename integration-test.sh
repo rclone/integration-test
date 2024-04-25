@@ -51,7 +51,7 @@ export GOTAGS=cmount
 
 go install github.com/rclone/rclone/fstest/test_all
 
-test_all -verbose -upload "memstore:pub-rclone-org//integration-tests" -email "nick@craig-wood.com" -output "/home/rclone/integration-test/rclone-integration-tests"
+test_all -verbose -upload "pub.rclone.org:integration-tests" -email "nick@craig-wood.com" -output "/home/rclone/integration-test/rclone-integration-tests"
 
 # stop minio
 kill $minio_pid

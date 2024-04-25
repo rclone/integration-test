@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-OUT=memstore:pub-rclone-org/integration-tests/
+OUT=pub.rclone.org:integration-tests/
 TMP=/tmp/integration-test-listing
 REMOVE=/tmp/integration-test-listing-to-remove
 INCLUDE=/tmp/integration-test-listing-include

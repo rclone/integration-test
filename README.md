@@ -58,7 +58,6 @@ TestSftp:
 TestSwift:
 TestWebdav:
 TestYandex:
-memstore:
 ```
 
 

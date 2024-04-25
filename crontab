@@ -24,17 +24,17 @@
 SHELL=/bin/bash
 MAILTO=nick@craig-wood.com
 
-0 3 * * * (cd ~/go/src/github.com/rclone/rclone; date -Is; source ~/.profile; test_all -clean ) >> clean.log 2>&1 || echo "rclone clean failed"
+22 0 * * * (cd ~/go/src/github.com/rclone/rclone; date -Is; source ~/.profile; test_all -clean ) >> clean.log 2>&1 || echo "rclone clean failed"
 
-0 5 * * * (cd ~/integration-test; date -Is; source ~/.profile; go run integration-test.go) >> integration-test.log 2>&1 || echo "rclone integration tests failed"
+0 1 * * * (cd ~/integration-test; date -Is; source ~/.profile; go run integration-test.go) >> integration-test.log 2>&1 || echo "rclone integration tests failed"
 
-0 9 * * * (cd ~/integration-test; date -Is; source ~/.profile; ./upload-tip.sh) >> upload-tip.log 2>&1 || echo "rclone tip upload failed"
+0 6 * * * (cd ~/integration-test; date -Is; source ~/.profile; ./upload-tip.sh) >> upload-tip.log 2>&1 || echo "rclone tip upload failed"
 
 10 10 * * * (cd ~/integration-test; date -Is; source ~/.profile; ./tidy-integration-test.sh) >> tidy-integration-test.log 2>&1 || echo "rclone tidy integration test failed"
 
-0 2 * * Sun (cd ~/integration-test; date -Is; source ~/.profile; ./update-docker-images.sh) >> update-docker-images.log 2>&1 || echo "rclone update docker images failed"
+0 0 * * Sun (cd ~/integration-test; date -Is; source ~/.profile; ./update-docker-images.sh) >> update-docker-images.log 2>&1 || echo "rclone update docker images failed"
 
 #19 * * * * ./test-beta-download.sh >>test-beta-download.log 2>&1
 
 # Backup memstore to b2
-3 2 * * * /home/rclone/backup-memstore-rclone.sh >>/tmp/backup-memstore-rclone.log 2>&1
+#3 2 * * * /home/rclone/backup-memstore-rclone.sh >>/tmp/backup-memstore-rclone.log 2>&1
