@@ -26,7 +26,7 @@ var (
 	tests        = flag.String("tests", "", "to pass to test_all -tests")
 	runRegexp    = flag.String("run", "", "to pass to test_all -run")
 	outputDir    = flag.String("output", "/home/rclone/integration-test/rclone-integration-tests", "write test output here")
-	outputDirMax = flag.Int("output-max", 60, "maximum number of directories in outputDir")
+	outputDirMax = flag.Int("output-max", 30, "maximum number of directories in outputDir")
 	maxTries     = flag.Int("maxtries", -1, "if set, overrides the -maxtries for test_all")
 	// Globals
 	gobin         string // place for go binaries - filled in by main()
