@@ -21,6 +21,7 @@ var (
 	prepareOnly  = flag.Bool("prepare-only", false, "Do everything except run tests")
 	pr           = flag.String("pr", "", "PR number to test")
 	branch       = flag.String("branch", "", "branch to test (defaults to master)")
+	repo         = flag.String("repo", "origin", "git remote or URL to fetch -branch/-pr from - if not origin, results are not uploaded")
 	backends     = flag.String("backends", "", "to pass to test_all -backends")
 	remotes      = flag.String("remotes", "", "to pass to test_all -remotes")
 	tests        = flag.String("tests", "", "to pass to test_all -tests")
@@ -28,6 +29,7 @@ var (
 	outputDir    = flag.String("output", "/home/rclone/integration-test/rclone-integration-tests", "write test output here")
 	outputDirMax = flag.Int("output-max", 30, "maximum number of directories in outputDir")
 	maxTries     = flag.Int("maxtries", -1, "if set, overrides the -maxtries for test_all")
+	privateDir   = flag.String("private-output", "/home/rclone/integration-test/rclone-integration-tests-private", "write test output here instead of -output if -repo is not origin")
 	// Globals
 	gobin         string // place for go binaries - filled in by main()
 	rcloneVersion string // version of rclone
@@ -165,7 +167,7 @@ func installRclone() {
 	}
 	if pullName != "" {
 		xrun("git", "branch", "-D", branchName)
-		run("git", "fetch", "origin", pullName+":"+branchName)
+		run("git", "fetch", *repo, pullName+":"+branchName)
 		run("git", "checkout", branchName)
 	}
 
@@ -186,9 +188,11 @@ func runTests(rclonePath string) {
 		args := []string{
 			path.Join(gobin, "test_all"),
 			"-verbose",
-			"-upload", "pub.rclone.org:integration-tests",
 			"-email", "nick@craig-wood.com",
 			"-output", *outputDir,
+		}
+		if !isPrivate() {
+			args = append(args, "-upload", "pub.rclone.org:integration-tests")
 		}
 		if *backends != "" {
 			args = append(args, "-backends", *backends)
@@ -209,11 +213,18 @@ func runTests(rclonePath string) {
 	}
 }
 
+// isPrivate returns true if we are testing code from a repo other than origin
+//
+// The results of these must not be published anywhere
+func isPrivate() bool {
+	return *repo != "origin"
+}
+
 // make sure there aren't too many items in the output dir
 func tidyOutputDir() {
 	fis, err := os.ReadDir(*outputDir)
 	if err != nil {
-		log.Fatalf("Failed to read output directory %q: %v", outputDir, err)
+		log.Fatalf("Failed to read output directory %q: %v", *outputDir, err)
 	}
 	var names []string
 	for _, fi := range fis {
@@ -242,6 +253,15 @@ func main() {
 		log.Fatalf("Syntax: %s [opts]", os.Args[0])
 	}
 
+	if isPrivate() {
+		if *pr == "" && *branch == "" {
+			log.Fatalf("Need -branch or -pr with -repo %q", *repo)
+		}
+		*outputDir = *privateDir
+		mkdirall(*outputDir)
+		log.Printf("Testing private repo %q: not uploading results and writing output to %q", *repo, *outputDir)
+	}
+
 	tidyOutputDir()
 
 	gobin = path.Join(*gopath, "bin")
@@ -253,4 +273,9 @@ func main() {
 
 	rclonePath := path.Join(*gopath, "src/github.com/rclone/rclone")
 	runTests(rclonePath)
+
+	if isPrivate() {
+		// don't leave the private code checked out for upload-tip.sh to publish
+		run("git", "checkout", "master")
+	}
 }
