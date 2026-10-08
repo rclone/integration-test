@@ -6,6 +6,7 @@ set -e
 
 export GOPATH=~/go
 cd ${GOPATH}/src/github.com/rclone/rclone
+( cd docs/static/img/logos/ && git pull )
 make commanddocs
 make website
 rclone sync docs/public tip.rclone.org:
