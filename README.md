@@ -1,80 +1,66 @@
 # Rclone integration server #
 
-This describes the setup for the rclone integration server.  More details are probably needed!
+This describes the setup for the rclone integration server, which runs
+on `rclone-testing` as the `rclone` user.
+
+It runs the rclone integration tests every night and uploads the
+results to `pub.rclone.org:integration-tests`, and builds and uploads
+the tip website to https://tip.rclone.org/.
+
+## Files ##
+
+- `integration-test.go` - checks out and builds rclone, then runs
+  `test_all` against all the remotes. Run `go run integration-test.go
+  -h` to see the flags, eg `-branch`, `-pr` and `-backends`.
+- `upload-tip.sh` - builds the website from the rclone checkout and
+  uploads it to `tip.rclone.org:`.
+- `tidy-integration-test.sh` - keeps the newest 30 test runs in
+  `pub.rclone.org:integration-tests` and deletes the rest.
+- `update-docker-images.sh` - pulls the latest version of every docker
+  image and prunes the rest.
+- `crontab` - the crontab for the `rclone` user, which runs all of the
+  above.
+
+The rclone source is checked out in `~/go/src/github.com/rclone/rclone`.
+This is shared by the integration tests and `upload-tip.sh`. The
+restic source is also checked out in `~/go/src/github.com/restic/restic`
+for the `cmd/serve/restic` tests.
+
+Test output is written to `~/integration-test/rclone-integration-tests`
+(newest 30 runs kept) and emailed to nick@craig-wood.com.
 
 ## How to install ##
 
-Install enough tools to build rclone
+The server runs Ubuntu. Install enough tools to build rclone and
+run the mount tests
 
-    apt-get build-essentials
+    apt install build-essential fuse fuse3 libfuse-dev
 
-Install the latest version of go from source.
+Install the latest version of go into `/usr/local/go` and the latest
+version of hugo into `/usr/local/bin` (needed for `upload-tip.sh`).
 
-Make sure go path is added to .profile
+Install docker and add the `rclone` user to the `docker` group. Many
+of the test servers (FTP, SFTP, SMB, WebDAV, Swift, etc) are run in
+docker by `test_all`, using the scripts in
+`fstest/testserver/init.d` in the rclone source.
 
-    export GOPATH=$HOME/go
-
-set PATH so it includes go binary path in .profile
-
-    export PATH="/usr/local/go/bin:$HOME/go/bin:$PATH"
-
-Install hugo from .deb, make sure /usr/local/bin is on the path
+Add this to the `rclone` user's `.profile`
 
     export PATH="/usr/local/bin:$PATH"
+    export GOPATH=$HOME/go
+    export PATH="/usr/local/go/bin:$HOME/go/bin:$PATH"
 
-create an rclone user and have something like this on the crontab
+Check out this repo into `~/integration-test` and install the crontab
 
-```
-SHELL=/bin/bash
-MAILTO=your@email-address.com
+    git clone https://github.com/rclone/integration-test.git ~/integration-test
+    crontab ~/integration-test/crontab
 
-0 5 * * * (cd ~/integration-test; date -Is; source ~/.profile; ./integration-test.sh) >> integration-test.log 2>&1
+Make sure `~/.rclone.conf` has
 
-0 9 * * * (cd ~/integration-test; date -Is; source ~/.profile; ./upload-tip.sh) >> upload-tip.log 2>&1
-```
-
-Make sure you have an rclone config with credentials for all the cloud providers.  `rclone listremotes` should look something like
-
-```
-TestAmazonCloudDrive:
-TestAzureBlob:
-TestB2:
-TestBox:
-TestCache:
-TestCryptDrive:
-TestCryptSwift:
-TestDrive:
-TestDropbox:
-TestFTP:
-TestGoogleCloudStorage:
-TestHubic:
-TestMega:
-TestOneDrive:
-TestOss:
-TestPcloud:
-TestQingStor:
-TestS3:
-TestSftp:
-TestSwift:
-TestWebdav:
-TestYandex:
-```
-
-
-## FTP ##
-
-Make a new user called testdata - this will be used to run the SFTP
-and FTP integration tests.  Make sure they have a very secure password
-and add it to the rclone config.
-
-Install pure-ftpd with the extra config file
-
-    # cat /etc/pure-ftpd/conf/Bind
-    127.0.0.1,21
-
-## SSH ##
-
-Make an ssh key for rclone user and install it in testdata user
+- credentials for all the remotes in `fstest/test_all/config.yaml` in
+  the rclone source, eg `TestS3:`, `TestDrive:`, `TestB2:`.
+- `pub.rclone.org:` for the test results.
+- `tip.rclone.org:` for the tip website.
 
 ## Testing security releases ##
 
